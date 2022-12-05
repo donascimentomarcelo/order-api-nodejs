@@ -20,4 +20,37 @@ class ProductService {
         const product = productsRepository.create({ name, price, quantity });
         return await productsRepository.save(product);
     }
+
+    public async getAll(): Promise<Product[]> {
+        const productsRepository = getCustomRepository(ProductRepository);
+        return await productsRepository.find();
+    }
+
+    public async getById(id: number): Promise<Product | undefined> {
+        const productsRepository = getCustomRepository(ProductRepository);
+        return await productsRepository.findOne(id);
+    }
+
+    public async update(
+        { name, price, quantity }: IRequest,
+        id: number,
+    ): Promise<Product> {
+        const productsRepository = getCustomRepository(ProductRepository);
+        const product = await productsRepository.findOne(id);
+
+        if (!product) throw new AppError('Product does not exist!');
+
+        product.name = name;
+        product.price = price;
+        product.quantity = quantity;
+
+        return await productsRepository.save(product);
+    }
+
+    public async delete(id: number): Promise<void> {
+        const productsRepository = getCustomRepository(ProductRepository);
+        await productsRepository.delete(id);
+    }
 }
+
+export default ProductService;
