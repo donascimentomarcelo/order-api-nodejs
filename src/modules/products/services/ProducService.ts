@@ -4,6 +4,7 @@ import AppError from '@shared/errors/AppError';
 import Product from '../typeorm/entities/Product';
 
 interface IRequest {
+    id?: string;
     name: string;
     price: number;
     quantity: number;
@@ -26,15 +27,17 @@ class ProductService {
         return await productsRepository.find();
     }
 
-    public async getById(id: number): Promise<Product | undefined> {
+    public async getById(id: string): Promise<Product | undefined> {
         const productsRepository = getCustomRepository(ProductRepository);
         return await productsRepository.findOne(id);
     }
 
-    public async update(
-        { name, price, quantity }: IRequest,
-        id: number,
-    ): Promise<Product> {
+    public async update({
+        id,
+        name,
+        price,
+        quantity,
+    }: IRequest): Promise<Product> {
         const productsRepository = getCustomRepository(ProductRepository);
         const product = await productsRepository.findOne(id);
 
@@ -47,7 +50,7 @@ class ProductService {
         return await productsRepository.save(product);
     }
 
-    public async delete(id: number): Promise<void> {
+    public async delete(id: string): Promise<void> {
         const productsRepository = getCustomRepository(ProductRepository);
         await productsRepository.delete(id);
     }
