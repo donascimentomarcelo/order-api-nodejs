@@ -1,12 +1,19 @@
 import AppError from '@shared/errors/AppError';
 import { compare } from 'bcryptjs';
+import { sign } from 'jsonwebtoken';
 import { getCustomRepository } from 'typeorm';
 import User from '../typeorm/entities/User';
 import { UserRepository } from '../typeorm/repositories/UsersRepository';
+import authConfig from '@config/auth';
 
 interface IRequest {
     email: string;
     password: string;
+}
+
+interface IResponse {
+    user: User;
+    token: string;
 }
 
 class AuthService {
@@ -16,7 +23,7 @@ class AuthService {
         this.userRepository = getCustomRepository(UserRepository);
     }
 
-    public async auth({ email, password }: IRequest): Promise<User> {
+    public async auth({ email, password }: IRequest): Promise<IResponse> {
         const user = await this.userRepository.findByEmail(email);
 
         if (!user) throw new AppError('It has a user with that email');
@@ -26,7 +33,15 @@ class AuthService {
         if (!passwordConfirmed)
             throw new AppError('Incorrect email/password combination', 401);
 
-        return user;
+        const token = sign({}, authConfig.jwt.secret, {
+            subject: user.id,
+            expiresIn: authConfig.jwt.expiresIn,
+        });
+
+        return {
+            user,
+            token,
+        };
     }
 }
 
