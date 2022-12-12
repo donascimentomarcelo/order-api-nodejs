@@ -4,6 +4,7 @@ import AppError from '@shared/errors/AppError';
 import { getCustomRepository } from 'typeorm';
 import { addHours, isAfter } from 'date-fns';
 import { hash } from 'bcryptjs';
+import EtherealMail from '@config/mail/EtherealMail';
 
 interface IRequest {
     email: string;
@@ -28,7 +29,12 @@ class ForgotPasswordService {
 
         if (!user) throw new AppError('User not found');
 
-        await this.usersTokensRepository.generate(user.id);
+        const token = await this.usersTokensRepository.generate(user.id);
+
+        EtherealMail.sendMail({
+            to: email,
+            body: `Password solicitation received: ${token?.token}`,
+        });
     }
 
     public async resetPassword({
