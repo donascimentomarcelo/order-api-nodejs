@@ -29,11 +29,21 @@ class ForgotPasswordService {
 
         if (!user) throw new AppError('User not found');
 
-        const token = await this.usersTokensRepository.generate(user.id);
+        const { token } = await this.usersTokensRepository.generate(user.id);
 
         EtherealMail.sendMail({
-            to: email,
-            body: `Password solicitation received: ${token?.token}`,
+            to: {
+                name: user.name,
+                email: user.email,
+            },
+            subject: 'Order API - Password Recovery',
+            templateData: {
+                template: `Hi {{name}}: {{token}}`,
+                variables: {
+                    name: user.name,
+                    token,
+                },
+            },
         });
     }
 
