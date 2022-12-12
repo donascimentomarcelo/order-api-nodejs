@@ -5,6 +5,7 @@ import { getCustomRepository } from 'typeorm';
 import { addHours, isAfter } from 'date-fns';
 import { hash } from 'bcryptjs';
 import EtherealMail from '@config/mail/EtherealMail';
+import path from 'path';
 
 interface IRequest {
     email: string;
@@ -31,6 +32,13 @@ class ForgotPasswordService {
 
         const { token } = await this.usersTokensRepository.generate(user.id);
 
+        const template = path.resolve(
+            __dirname,
+            '..',
+            'views',
+            'forgot_password.hbs',
+        );
+
         EtherealMail.sendMail({
             to: {
                 name: user.name,
@@ -38,10 +46,10 @@ class ForgotPasswordService {
             },
             subject: 'Order API - Password Recovery',
             templateData: {
-                template: `Hi {{name}}: {{token}}`,
+                template: template,
                 variables: {
                     name: user.name,
-                    token,
+                    link: `http://localhost:3000/reset_password?token=${token}`,
                 },
             },
         });

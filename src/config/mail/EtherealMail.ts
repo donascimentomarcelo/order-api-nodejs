@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import HandlebarsMailTemplate from './HandlebarsMailTemplate';
 
 interface ITemplateVariable {
-    [key: string]: any;
+    [key: string]: string | number;
 }
 
 interface IParseMailTemplate {
