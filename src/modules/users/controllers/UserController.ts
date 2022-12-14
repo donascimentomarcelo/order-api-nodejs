@@ -33,4 +33,30 @@ export default class UserController {
         });
         return response.json(user);
     }
+
+    public async show(request: Request, response: Response): Promise<Response> {
+        const userService = new UserService();
+        const { id } = request.user;
+
+        const user = await userService.getById(id);
+        return response.json(user);
+    }
+
+    public async update(
+        request: Request,
+        response: Response,
+    ): Promise<Response> {
+        const user_id = request.user.id;
+        const { name, email, password, old_password } = request.body;
+        const userService = new UserService();
+
+        const user = await userService.updateProfile({
+            user_id,
+            name,
+            email,
+            password,
+            old_password,
+        });
+        return response.json(user);
+    }
 }
