@@ -2,6 +2,7 @@ import { CustomersRepository } from './../typeorm/repositories/CustomersReposito
 import AppError from '@shared/errors/AppError';
 import { getCustomRepository } from 'typeorm';
 import Customer from '../typeorm/entities/Customer';
+import IPaginate from '@shared/models/IPaginate';
 
 interface IRequest {
     id?: string;
@@ -35,8 +36,10 @@ class CustomerService {
         return await this.customersRepository.save(customer);
     }
 
-    public async getAll(): Promise<Customer[]> {
-        return await this.customersRepository.find();
+    public async getAll(): Promise<IPaginate> {
+        return (await this.customersRepository
+            .createQueryBuilder()
+            .paginate()) as IPaginate;
     }
 
     public async getById(id: string): Promise<Customer | undefined> {
