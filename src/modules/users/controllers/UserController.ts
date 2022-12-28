@@ -1,6 +1,7 @@
 import UserService from '@modules/users/services/UserService';
 import { Request, Response } from 'express';
 import ImageService from '../services/ImageService';
+import { instanceToInstance } from 'class-transformer';
 
 export default class UserController {
     public async index(
@@ -9,7 +10,7 @@ export default class UserController {
     ): Promise<Response> {
         const userService = new UserService();
         const users = await userService.getAll();
-        return response.json(users);
+        return response.json(instanceToInstance(users));
     }
 
     public async create(
@@ -19,7 +20,7 @@ export default class UserController {
         const { name, email, password } = request.body;
         const userService = new UserService();
         const user = await userService.create({ name, email, password });
-        return response.json(user);
+        return response.json(instanceToInstance(user));
     }
 
     public async upload(
@@ -31,7 +32,7 @@ export default class UserController {
             user_id: request.user.id,
             avatarFileName: request.file ? request.file.filename : '',
         });
-        return response.json(user);
+        return response.json(instanceToInstance(user));
     }
 
     public async show(request: Request, response: Response): Promise<Response> {
@@ -57,6 +58,6 @@ export default class UserController {
             password,
             old_password,
         });
-        return response.json(user);
+        return response.json(instanceToInstance(user));
     }
 }
