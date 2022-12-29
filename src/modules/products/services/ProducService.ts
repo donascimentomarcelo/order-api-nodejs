@@ -2,6 +2,7 @@ import { ProductRepository } from './../typeorm/repositories/ProductsRepository'
 import { getCustomRepository } from 'typeorm';
 import AppError from '@shared/errors/AppError';
 import Product from '../typeorm/entities/Product';
+import RedisCache from '@shared/cache/RedisCache';
 
 interface IRequest {
     id?: string;
@@ -12,9 +13,11 @@ interface IRequest {
 
 class ProductService {
     public productsRepository: ProductRepository;
+    public redisCache: RedisCache;
 
     constructor() {
         this.productsRepository = getCustomRepository(ProductRepository);
+        this.redisCache = new RedisCache();
     }
 
     public async create({ name, price, quantity }: IRequest): Promise<Product> {
@@ -28,11 +31,21 @@ class ProductService {
             price,
             quantity,
         });
+
+        await this.redisCache.invalidate('api-order');
+
         return await this.productsRepository.save(product);
     }
 
     public async getAll(): Promise<Product[]> {
-        return await this.productsRepository.find();
+        let products = await this.redisCache.recover<Product[]>('api-order');
+
+        if (!products) {
+            products = await this.productsRepository.find();
+            await this.redisCache.save('api-order', products);
+        }
+
+        return products;
     }
 
     public async getById(id: string): Promise<Product | undefined> {
@@ -57,6 +70,7 @@ class ProductService {
     }
 
     public async delete(id: string): Promise<void> {
+        await this.redisCache.invalidate('api-order');
         await this.productsRepository.delete(id);
     }
 }
