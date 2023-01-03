@@ -1,59 +1,53 @@
-import { CustomersRepository } from './../typeorm/repositories/CustomersRepository';
+import { ICustomerRepository } from '../typeorm/repositories/ICustomerRepository';
+import { ICustomerUpdate } from './../domain/models/ICustomerUpdate';
 import AppError from '@shared/errors/AppError';
-import { getCustomRepository } from 'typeorm';
 import Customer from '../typeorm/entities/Customer';
 import IPaginate from '@shared/models/IPaginate';
+import { ICustomerCreate } from '../domain/models/ICustomerCreate';
+import { injectable, inject } from 'tsyringe';
 
-interface IRequest {
-    id?: string;
-    name: string;
-    email: string;
-}
-
+@injectable()
 class CustomerService {
-    public customersRepository: CustomersRepository;
-
-    constructor() {
-        this.customersRepository = getCustomRepository(CustomersRepository);
-    }
+    constructor(
+        @inject('CustomerRepository')
+        private customerRepository: ICustomerRepository,
+    ) {}
 
     public async create({
         name,
         email,
-    }: IRequest): Promise<Customer | undefined> {
-        const customerExists = await this.customersRepository.findByEmail(
-            email,
-        );
+    }: ICustomerCreate): Promise<Customer | undefined> {
+        const customerExists = await this.customerRepository.findByEmail(email);
 
         if (customerExists)
             throw new AppError('It has a Customer with that email');
 
-        const customer = this.customersRepository.create({
+        return await this.customerRepository.create({
             name,
             email,
         });
-
-        return await this.customersRepository.save(customer);
     }
 
     public async getAll(): Promise<IPaginate> {
-        return (await this.customersRepository
-            .createQueryBuilder()
-            .paginate()) as IPaginate;
+        return this.customerRepository.paginate();
     }
 
     public async getById(id: string): Promise<Customer | undefined> {
-        return await this.customersRepository.findOne(id);
+        return await this.customerRepository.findById(id);
     }
 
-    public async update({ name, email, id }: IRequest): Promise<Customer> {
+    public async update({
+        name,
+        email,
+        id,
+    }: ICustomerUpdate): Promise<Customer> {
         if (!id) throw new AppError('Id is missing!');
 
         const customer = await this.getById(id);
 
         if (!customer) throw new AppError('Customer not found!');
 
-        const customerExists = await this.customersRepository.findByEmail(
+        const customerExists = await this.customerRepository.findByEmail(
             customer.email,
         );
 
@@ -65,13 +59,13 @@ class CustomerService {
         customer.name = name;
         customer.email = email;
 
-        await this.customersRepository.save(customer);
+        await this.customerRepository.save(customer);
 
         return customer;
     }
 
     public async delete(id: string): Promise<void> {
-        await this.customersRepository.delete(id);
+        await this.customerRepository.delete(id);
     }
 }
 

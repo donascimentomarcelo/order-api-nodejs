@@ -3,7 +3,7 @@ import { getCustomRepository } from 'typeorm';
 import AppError from '@shared/errors/AppError';
 import Order from '../typeorm/entities/Order';
 import { OrderRepository } from '../typeorm/repositories/OrdersRepository';
-import { CustomersRepository } from '@modules/customers/typeorm/repositories/CustomersRepository';
+import { CustomersRepository } from '@modules/customers/typeorm/repositories/impl/CustomerRepository';
 import Product from '@modules/products/typeorm/entities/Product';
 
 interface IOrder {

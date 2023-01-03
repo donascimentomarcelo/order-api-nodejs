@@ -1,3 +1,4 @@
+import { container } from 'tsyringe';
 import { Request, Response } from 'express';
 import CustomerService from '../services/CustomerService';
 
@@ -6,8 +7,7 @@ export default class CustomersController {
         request: Request,
         response: Response,
     ): Promise<Response> {
-        const customerService = new CustomerService();
-        const users = await customerService.getAll();
+        const users = await container.resolve(CustomerService).getAll();
         return response.json(users);
     }
 
@@ -16,16 +16,16 @@ export default class CustomersController {
         response: Response,
     ): Promise<Response> {
         const { name, email } = request.body;
-        const customerService = new CustomerService();
-        const user = await customerService.create({ name, email });
+        const user = await container
+            .resolve(CustomerService)
+            .create({ name, email });
         return response.json(user);
     }
 
     public async show(request: Request, response: Response): Promise<Response> {
-        const customerService = new CustomerService();
         const { id } = request.user;
 
-        const user = await customerService.getById(id);
+        const user = await container.resolve(CustomerService).getById(id);
         return response.json(user);
     }
 
@@ -35,9 +35,8 @@ export default class CustomersController {
     ): Promise<Response> {
         const id = request.user.id;
         const { name, email } = request.body;
-        const customerService = new CustomerService();
 
-        const user = await customerService.update({
+        const user = await container.resolve(CustomerService).update({
             id,
             name,
             email,
@@ -50,8 +49,7 @@ export default class CustomersController {
         response: Response,
     ): Promise<Response> {
         const { id } = request.params;
-        const customerService = new CustomerService();
-        await customerService.delete(id);
+        await container.resolve(CustomerService).delete(id);
         return response.json([]);
     }
 }
