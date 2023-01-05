@@ -21,7 +21,8 @@ export class FakeCustomerRepository implements ICustomerRepository {
     }
 
     public async save(customer: Customer): Promise<ICustomer> {
-        Object.assign(this.customers, customer);
+        const findIndex = this.customers.findIndex(c => c.id === customer.id);
+        this.customers[findIndex] = customer;
         return customer;
     }
 
