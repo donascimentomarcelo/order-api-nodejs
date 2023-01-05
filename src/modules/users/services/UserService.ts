@@ -1,8 +1,8 @@
+import { IHashProvider } from './../providers/HashProvider/models/IHashProvider';
 import AppError from '@shared/errors/AppError';
-import { compare, hash } from 'bcryptjs';
-import { getCustomRepository } from 'typeorm';
+import { inject, injectable } from 'tsyringe';
 import User from '../typeorm/entities/User';
-import { UserRepository } from '../typeorm/repositories/UsersRepository';
+import { UserRepository } from '../typeorm/repositories/impl/UsersRepository';
 
 interface IRequest {
     id?: string;
@@ -20,12 +20,14 @@ interface IProfile {
     old_password?: string;
 }
 
+@injectable()
 class UserService {
-    public userRepository: UserRepository;
-
-    constructor() {
-        this.userRepository = getCustomRepository(UserRepository);
-    }
+    constructor(
+        @inject('UserRepository')
+        private userRepository: UserRepository,
+        @inject('HashProvider')
+        private hashProvider: IHashProvider,
+    ) {}
 
     public async create({
         name,
@@ -36,7 +38,7 @@ class UserService {
 
         if (userExists) throw new AppError('It has a user with that email');
 
-        const hashedPassword = await hash(password, 8);
+        const hashedPassword = await this.hashProvider.generateHash(password);
 
         const user = this.userRepository.create({
             name,
@@ -98,12 +100,15 @@ class UserService {
             throw new AppError('Old password is required.');
 
         if (password && old_password) {
-            const checkOldPassword = await compare(old_password, user.password);
+            const checkOldPassword = await this.hashProvider.compareHash(
+                old_password,
+                user.password,
+            );
 
             if (!checkOldPassword)
                 throw new AppError('Old password does not match.');
 
-            user.password = await hash(password, 8);
+            user.password = await this.hashProvider.generateHash(password);
         }
 
         user.name = name;
