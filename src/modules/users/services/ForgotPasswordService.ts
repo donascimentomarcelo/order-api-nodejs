@@ -1,5 +1,5 @@
 import { UserRepository } from '../typeorm/repositories/impl/UsersRepository';
-import { UsersTokensRepository } from './../typeorm/repositories/UsersTokensRepository';
+import { UsersTokensRepository } from './../typeorm/repositories/impl/UsersTokensRepository';
 import AppError from '@shared/errors/AppError';
 import { getCustomRepository } from 'typeorm';
 import { addHours, isAfter } from 'date-fns';

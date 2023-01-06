@@ -2,10 +2,15 @@ import { IHashProvider } from './../providers/HashProvider/models/IHashProvider'
 import AppError from '@shared/errors/AppError';
 import { inject, injectable } from 'tsyringe';
 import User from '../typeorm/entities/User';
-import { UserRepository } from '../typeorm/repositories/impl/UsersRepository';
+import IUserRepository from '../typeorm/repositories/IUsersRepository';
 
 interface IRequest {
-    id?: string;
+    id: string;
+    name: string;
+    email: string;
+    password: string;
+}
+interface IRequestCreate {
     name: string;
     email: string;
     password: string;
@@ -24,7 +29,7 @@ interface IProfile {
 class UserService {
     constructor(
         @inject('UserRepository')
-        private userRepository: UserRepository,
+        private userRepository: IUserRepository,
         @inject('HashProvider')
         private hashProvider: IHashProvider,
     ) {}
@@ -33,14 +38,14 @@ class UserService {
         name,
         email,
         password,
-    }: IRequest): Promise<User | undefined> {
+    }: IRequestCreate): Promise<User | undefined> {
         const userExists = await this.userRepository.findByEmail(email);
 
         if (userExists) throw new AppError('It has a user with that email');
 
         const hashedPassword = await this.hashProvider.generateHash(password);
 
-        const user = this.userRepository.create({
+        const user = await this.userRepository.create({
             name,
             email,
             password: hashedPassword,
@@ -50,11 +55,11 @@ class UserService {
     }
 
     public async getAll(): Promise<User[]> {
-        return await this.userRepository.find();
+        return await this.userRepository.getAll();
     }
 
     public async getById(id: string): Promise<User | undefined> {
-        return await this.userRepository.findOne(id);
+        return await this.userRepository.findById(id);
     }
 
     public async update({
@@ -63,7 +68,7 @@ class UserService {
         email,
         password,
     }: IRequest): Promise<User> {
-        const user = await this.userRepository.findOne(id);
+        const user = await this.getById(id);
 
         if (!user) throw new AppError('User not found!');
 
@@ -75,7 +80,7 @@ class UserService {
     }
 
     public async delete(id: string): Promise<void> {
-        await this.userRepository.delete(id);
+        await this.userRepository.remove(id);
     }
 
     public async updateProfile({

@@ -6,8 +6,9 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
+import IUserCreate from './IUserCreate';
 @Entity('users')
-class User {
+class User implements IUserCreate {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
