@@ -31,6 +31,8 @@ uploads/*
 
 ## How to setup dev runner
 
+- Add that line on the package.json
+
 "scripts": {
     "dev": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules src/server.ts",
 },
